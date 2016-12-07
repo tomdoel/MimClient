@@ -5,28 +5,12 @@ function loadStudyList(callback) {
 
     // Get study list from XNAT server
     loadXnatStudyList(callback);
-
-    // Get study info from cornerstoneDemo
-//    loadDemoStudyList(callback);
-
 }
 
 function getStudyInfo(study, callback) {
 
     // Get study info from XNAT server
     getStudyInfoXnat(study, callback);
-
-    // Get study info from cornerstoneDemo
-//    $.getJSON('studies/' + study.studyId + ".json", function(data) {
-//        callback(data);
-//    });
-}
-
-function loadDemoStudyList(callback) {
-    var callback_stored = callback;
-    $.getJSON('studyList.json', function(data) {
-        callback_stored(data);
-    });
 }
 
 function loadXnatStudyList(callback) {
@@ -37,29 +21,6 @@ function loadXnatStudyList(callback) {
     listSubjects(baseUrl, auth, project, function(subjectList) {
         listExperiments(baseUrl, auth, project, subjectList, function(experimentList) {
             assembleStudyListFromExperiments(baseUrl, auth, experimentList, callback_stored);
-//            listScans(baseUrl, auth, experimentList, function(scanList) {
-//                listResources(baseUrl, auth, scanList, function(resourceList) {
-////                    assembleStudyListFromResources(resourceList, callback_stored);
-//                $.getJSON('studyList.json', function(data) {
-//                    callback_stored(data);
-//                });
-//                });
-//            });
-        });
-    });
-}
-
-function loadCompleteStudyList(callback) {
-    var auth = btoa(testingParameters.username + ":" + testingParameters.password);
-    var baseUrl = testingParameters.xnatServer;
-    var callback_stored = callback;
-    listSubjects(baseUrl, auth, function(subjectList) {
-        listExperiments(baseUrl, auth, subjectList, function(experimentList) {
-            listScans(baseUrl, auth, experimentList, function(scanList) {
-                listResources(baseUrl, auth, scanList, function(resourceList) {
-                    assembleStudyListFromResources(resourceList, callback_stored);
-                });
-            });
         });
     });
 }
@@ -239,16 +200,6 @@ function assembleStudyListFromExperiments(baseUrl, auth, experimentList, callbac
         outputData.studyList.push(newStudy);
     });
     callback(outputData);
-}
-
-function assembleStudyListFromResources(resourceList, callback) {
-    studyList = [];
-    resourceList.forEach(function(resource) {
-        nextEntry = [];
-        nextEntry.numImages = resource.file_count;
-        studyList.push(nextEntry);
-    });
-    callback(studyList);
 }
 
 function getStudyInfoXnat(study, callback) {
