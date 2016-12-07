@@ -11,7 +11,7 @@ loadTemplate("templates/studyViewer.html", function(element) {
 });
 
 // Get study list from JSON manifest
-$.getJSON('studyList.json', function(data) {
+loadStudyList(function(data) {
   data.studyList.forEach(function(study) {
 
     // Create one table row for each study in the manifest
@@ -56,7 +56,7 @@ $.getJSON('studyList.json', function(data) {
       });
 
       // Now load the study.json
-      loadStudy(studyViewerCopy, viewportTemplate, study.studyId + ".json");
+      loadStudy(studyViewerCopy, viewportTemplate, study);
     });
   });
 });
