@@ -11,17 +11,14 @@ loadTemplate("templates/studyViewer.html", function(element) {
 });
 
 // Get study list from JSON manifest
-loadStudyList(function(data) {
-  data.studyList.forEach(function(study) {
+loadXnatPatientList(function(data) {
+  data.subjectList.forEach(function(subject) {
 
     // Create one table row for each study in the manifest
     var studyRow = '<tr><td>' +
-    study.patientName + '</td><td>' +
-    study.patientId + '</td><td>' +
-    study.studyDate + '</td><td>' +
-    study.modality + '</td><td>' +
-    study.studyDescription + '</td><td>' +
-    study.numImages + '</td><td>' +
+    subject.xnatProject + '</td><td>' +
+    subject.subjectName + '</td><td>' +
+    subject.xnatInsertDate + '</td><td>' +
     '</tr>';
 
     // Append the row to the study list
@@ -31,7 +28,7 @@ loadStudyList(function(data) {
     $(studyRowElement).click(function() {
 
       // Add new tab for this study and switch to it
-      var studyTab = '<li><a href="#x' + study.patientId + '" data-toggle="tab">' + study.patientName + '</a></li>';
+      var studyTab = '<li><a href="#x' + subject.subjectXnatID + '" data-toggle="tab">' + subject.subjectName + '</a></li>';
       $('#tabs').append(studyTab);
 
       // Add tab content by making a copy of the studyViewerTemplate element
@@ -41,7 +38,7 @@ loadStudyList(function(data) {
       studyViewerCopy.find('.imageViewer').append(viewportCopy);*/
 
 
-      studyViewerCopy.attr("id", 'x' + study.patientId);
+      studyViewerCopy.attr("id", 'x' + subject.subjectXnatID);
       // Make the viewer visible
       studyViewerCopy.removeClass('hidden');
       // Add section to the tab content
@@ -55,8 +52,8 @@ loadStudyList(function(data) {
         $(window).trigger('resize');
       });
 
-      // Now load the study.json
-      loadStudy(studyViewerCopy, viewportTemplate, study);
+      // Now load the subject data
+      loadSubject(studyViewerCopy, viewportTemplate, subject);
     });
   });
 });

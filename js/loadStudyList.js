@@ -1,5 +1,14 @@
 var testingParameters = {xnatServer: "xxxx", username: "xxxx", password: "xxxx", project: "xxxx"};
 
+function loadXnatPatientList(callback) {
+    var auth = btoa(testingParameters.username + ":" + testingParameters.password);
+    var baseUrl = testingParameters.xnatServer;
+    var callback_stored = callback;
+    project = testingParameters.project;
+    listAllSubjects(baseUrl, auth, function(subjectList) {
+        assemblePatientListFromXnatSubjects(baseUrl, auth, subjectList, callback_stored);
+    });
+}
 
 function loadStudyList(callback) {
 
@@ -18,7 +27,7 @@ function loadXnatStudyList(callback) {
     var baseUrl = testingParameters.xnatServer;
     var callback_stored = callback;
     project = testingParameters.project;
-    listSubjects(baseUrl, auth, project, function(subjectList) {
+    listAllSubjects(baseUrl, auth, function(subjectList) {
         listExperiments(baseUrl, auth, project, subjectList, function(experimentList) {
             assembleStudyListFromExperiments(baseUrl, auth, experimentList, callback_stored);
         });
@@ -28,22 +37,43 @@ function loadXnatStudyList(callback) {
 function listSubjects(baseUrl, auth, projectLabel, callback) {
     var allSubjects = [];    
     $.ajax({
+        crossDomain: true,
         url: baseUrl + "REST/projects/" + projectLabel + "/subjects?format=json&columns=DEFAULT",
         type: "GET",
         dataType: 'json',
-        async: false,
+        async: true,
         headers: {
             "Authorization": "Basic " + auth
         },
         success: function(subjectList) {
-                allSubjects = allSubjects.concat(subjectList.ResultSet.Result);
+            allSubjects = allSubjects.concat(subjectList.ResultSet.Result);
+            callback(allSubjects);
         },
         error: function(xhr, status, error) {
             var err = eval("(" + xhr.responseText + ")");
             console.log(err.Message);
         }
     });
-    callback(allSubjects);
+}
+
+function listAllSubjects(baseUrl, auth, callback) {
+    $.ajax({
+        crossDomain: true,
+        url: baseUrl + "REST/subjects?format=json&columns=DEFAULT",
+        type: "GET",
+        dataType: 'json',
+        async: true,
+        headers: {
+            "Authorization": "Basic " + auth
+        },
+        success: function(subjectList) {
+            callback(subjectList.ResultSet.Result);
+        },
+        error: function(xhr, status, error) {
+            var err = eval("(" + xhr.responseText + ")");
+            console.log(err.Message);
+        }
+    });
 }
 
 function listExperiments(baseUrl, auth, projectLabel, subjectList, callback) {
@@ -51,6 +81,7 @@ function listExperiments(baseUrl, auth, projectLabel, subjectList, callback) {
     subjectList.forEach(function(r) { console.log("Subject: " + r.label); });
     subjectList.forEach(function(subject) {
         $.ajax({
+            crossDomain: true,
             url: baseUrl + "REST/projects/" + projectLabel + "/subjects/" + subject.label + "/experiments?format=json",
             type: "GET",
             dataType: 'json',
@@ -76,19 +107,71 @@ function listExperiments(baseUrl, auth, projectLabel, subjectList, callback) {
     callback(allExperiments);
 }
 
+function listExperimentsForSubject(baseUrl, auth, projectLabel, subjectLabel, callback) {
+    $.ajax({
+        crossDomain: true,
+        url: baseUrl + "REST/projects/" + projectLabel + "/subjects/" + subjectLabel + "/experiments?format=json",
+        type: "GET",
+        dataType: 'json',
+        async: false,
+        headers: {
+            "Authorization": "Basic " + auth
+        },
+        success: function(experimentList) {
+            experimentList.ResultSet.Result.forEach(function(experiment) {
+                experiment.xnatSubjectLabel = subjectLabel;
+                experiment.xnatProjectLabel = experiment.project;
+                experiment.xnatExperimentLabel = experiment.label;
+
+            });
+            callback(experimentList.ResultSet.Result);            
+        },
+        error: function(xhr, status, error) {
+            var err = eval("(" + xhr.responseText + ")");
+            console.log(err.Message);
+        }
+    });
+}
+
+
 function listScans(baseUrl, auth, experimentList, callback) {
     var allScans = [];
-    experimentList.forEach(function(r) { console.log("Experiment: " + r.label); });
     experimentList.forEach(function(experiment) {
         allScans = allScans.concat(getScansForThisExperiment(baseUrl, auth, experiment));
     });
     callback(allScans);    
 }
 
+function getScansForThisSubject(baseUrl, auth, subject) {
+    $.ajax({
+        crossDomain: true,
+         url: baseUrl + "REST/projects/" + subject.xnatProject + "/subjects/" + subject.subjectXnatID + "/scans?format=json",
+        type: "GET",
+        dataType: 'json',
+        async: true,
+        headers: {
+            "Authorization": "Basic " + auth
+        },
+        success: function(scanList) {
+            scanList.ResultSet.Result.forEach(function(scan) {
+                scan.xnatSubjectLabel = subject.xnatSubjectLabel;
+                scan.xnatProjectLabel = subject.project;
+                scan.xnatExperimentLabel = subject.label;
+            });
+            return scanList.ResultSet.Result;
+        },
+        error: function(xhr, status, error) {
+            var err = eval("(" + xhr.responseText + ")");
+            console.log(err.Message);
+        }
+    });
+}
+
 function getScansForThisExperiment(baseUrl, auth, experiment) {
     var scans = [];
     $.ajax({
-        url: baseUrl + "REST/projects/" + experiment.project + "/subjects/" + experiment.xnatSubjectLabel + "/experiments/" + experiment.label + "/scans?format=json",
+        crossDomain: true,
+         url: baseUrl + "REST/projects/" + experiment.project + "/subjects/" + experiment.xnatSubjectLabel + "/experiments/" + experiment.label + "/scans?format=json",
         type: "GET",
         dataType: 'json',
         async: false,
@@ -163,6 +246,24 @@ function listFiles(baseUrl, auth, resource) {
     return files;
 }
 
+
+function assemblePatientListFromXnatSubjects(baseUrl, auth, xnatSubjectList, callback) {
+    outputData = [];
+    outputData.subjectList = [];
+    xnatSubjectList.forEach(function(subject) {
+        newSubject = [];
+        newSubject.subjectName = subject.label;
+        newSubject.subjectXnatID = subject.ID;
+        newSubject.xnatProject = subject.project;
+        newSubject.xnatUri = subject.URI;
+        newSubject.xnatInsertDate = subject.insert_date;
+        outputData.subjectList.push(newSubject);
+    });
+    callback(outputData);
+}
+
+
+
 function assembleStudyListFromExperiments(baseUrl, auth, experimentList, callback) {
     outputData = [];
     outputData.studyList = [];
@@ -202,6 +303,22 @@ function assembleStudyListFromExperiments(baseUrl, auth, experimentList, callbac
     callback(outputData);
 }
 
+function getSubjectInfoXnat(subject, callback) {
+    makeSeriesListForSubject(subject, function(seriesList) {
+        output = [];
+        output.patientName = subject.subjectName;
+        output.xnatProject = subject.xnatProject;
+        output.patientId = subject.subjectXnatID;
+        output.studyDate = subject.xnatInsertDate;
+        output.modality = [];
+        output.studyDescription = subject.subjectName;
+        output.studyId = subject.subjectXnatID;
+        output.seriesList = seriesList;
+        output.numImages = output.seriesList.length;
+        callback(output);        
+    });
+}
+
 function getStudyInfoXnat(study, callback) {
     output = [];
     output.patientName = study.patientName;
@@ -213,6 +330,37 @@ function getStudyInfoXnat(study, callback) {
     output.studyId = study.studyId;
     output.seriesList = makeSeriesList(study);
     callback(output);
+}
+
+function makeSeriesListForSubject(subject, callback) {
+    var auth = btoa(testingParameters.username + ":" + testingParameters.password);
+    var baseUrl = testingParameters.xnatServer;
+    
+    listExperimentsForSubject(baseUrl, auth, subject.xnatProject, subject.subjectXnatID, function(experimentList) {
+        listScansForExperimentList(baseUrl, auth, subject, experimentList, function(scans) {
+            seriesList = [];
+            scanNumber = 1;
+            scans.forEach(function(scan) {
+                nextSeries = [];
+                nextSeries.seriesDescription = scan.series_description;
+                nextSeries.seriesNumber = scanNumber;
+                nextSeries.instanceList = makeInstanceList(baseUrl, auth, scan); 
+                scanNumber++;
+                seriesList.push(nextSeries);
+            });
+            callback(seriesList);            
+        });
+    });    
+}
+
+ 
+
+function listScansForExperimentList(baseUrl, auth, subject, experimentList, callback) {
+    allScans = [];
+    experimentList.forEach(function(experiment) {
+        allScans = allScans.concat(getScansForThisExperiment(baseUrl, auth, experiment));
+    });
+    callback(allScans);
 }
 
 function makeSeriesList(study) {
