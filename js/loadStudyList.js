@@ -10,28 +10,10 @@ function loadXnatPatientList(callback) {
     });
 }
 
-function loadStudyList(callback) {
-
-    // Get study list from XNAT server
-    loadXnatStudyList(callback);
-}
-
 function getStudyInfo(study, callback) {
 
     // Get study info from XNAT server
     getStudyInfoXnat(study, callback);
-}
-
-function loadXnatStudyList(callback) {
-    var auth = btoa(testingParameters.username + ":" + testingParameters.password);
-    var baseUrl = testingParameters.xnatServer;
-    var callback_stored = callback;
-    project = testingParameters.project;
-    listAllSubjects(baseUrl, auth, function(subjectList) {
-        listExperiments(baseUrl, auth, project, subjectList, function(experimentList) {
-            assembleStudyListFromExperiments(baseUrl, auth, experimentList, callback_stored);
-        });
-    });
 }
 
 function listSubjects(baseUrl, auth, projectLabel, callback) {
@@ -76,37 +58,6 @@ function listAllSubjects(baseUrl, auth, callback) {
     });
 }
 
-function listExperiments(baseUrl, auth, projectLabel, subjectList, callback) {
-    var allExperiments = [];
-    subjectList.forEach(function(r) { console.log("Subject: " + r.label); });
-    subjectList.forEach(function(subject) {
-        $.ajax({
-            crossDomain: true,
-            url: baseUrl + "REST/projects/" + projectLabel + "/subjects/" + subject.label + "/experiments?format=json",
-            type: "GET",
-            dataType: 'json',
-            async: false,
-            headers: {
-                "Authorization": "Basic " + auth
-            },
-            success: function(experimentList) {
-                allExperiments = allExperiments.concat(experimentList.ResultSet.Result);
-                experimentList.ResultSet.Result.forEach(function(experiment) {
-                    experiment.xnatSubjectLabel = subject.label;
-                    experiment.xnatProjectLabel = experiment.project;
-                    experiment.xnatExperimentLabel = experiment.label;
-                    
-                });
-            },
-            error: function(xhr, status, error) {
-                var err = eval("(" + xhr.responseText + ")");
-                console.log(err.Message);
-            }
-        });
-    });
-    callback(allExperiments);
-}
-
 function listExperimentsForSubject(baseUrl, auth, projectLabel, subjectLabel, callback) {
     $.ajax({
         crossDomain: true,
@@ -131,15 +82,6 @@ function listExperimentsForSubject(baseUrl, auth, projectLabel, subjectLabel, ca
             console.log(err.Message);
         }
     });
-}
-
-
-function listScans(baseUrl, auth, experimentList, callback) {
-    var allScans = [];
-    experimentList.forEach(function(experiment) {
-        allScans = allScans.concat(getScansForThisExperiment(baseUrl, auth, experiment));
-    });
-    callback(allScans);    
 }
 
 function getScansForThisSubject(baseUrl, auth, subject) {
@@ -258,47 +200,6 @@ function assemblePatientListFromXnatSubjects(baseUrl, auth, xnatSubjectList, cal
         newSubject.xnatUri = subject.URI;
         newSubject.xnatInsertDate = subject.insert_date;
         outputData.subjectList.push(newSubject);
-    });
-    callback(outputData);
-}
-
-
-
-function assembleStudyListFromExperiments(baseUrl, auth, experimentList, callback) {
-    outputData = [];
-    outputData.studyList = [];
-    experimentList.forEach(function(r) { console.log("Experiment: " + r.label); });
-    experimentList.forEach(function(experiment) {
-        newStudy = [];
-        scans = getScansForThisExperiment(baseUrl, auth, experiment);
-        newStudy.patientName = experiment.xnatSubjectLabel;
-        newStudy.patientId = experiment.xnatSubjectLabel;
-        newStudy.studyId = experiment.label;
-        newStudy.studyDate = experiment.date;
-        newStudy.numImages = scans.length;
-        newStudy.xnatSubjectLabel = experiment.xnatSubjectLabel;
-        newStudy.xnatProjectLabel = experiment.xnatProjectLabel;
-        newStudy.xnatExperimentLabel = experiment.xnatExperimentLabel;
-        if(scans.length > 0) {
-            newStudy.studyDescription = scans[0].series_description;
-            switch(scans[0].xsiType) {
-                case "xnat:mrScanData":
-                    newStudy.modality = "MR";
-                    break;
-                case "xnat:usScanData":
-                    newStudy.modality = "US";
-                    break;
-                case "xnat:ctScanData":
-                    newStudy.modality = "CT";
-                    break;
-                default:
-                    newStudy.modality = "unknown";
-            }            
-        } else {
-            newStudy.studyDescription = "unknown";
-            newStudy.modality = "unknown";
-        }
-        outputData.studyList.push(newStudy);
     });
     callback(outputData);
 }
