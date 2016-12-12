@@ -16,28 +16,6 @@ function getStudyInfo(study, callback) {
     getStudyInfoXnat(study, callback);
 }
 
-function listSubjects(baseUrl, auth, projectLabel, callback) {
-    var allSubjects = [];    
-    $.ajax({
-        crossDomain: true,
-        url: baseUrl + "REST/projects/" + projectLabel + "/subjects?format=json&columns=DEFAULT",
-        type: "GET",
-        dataType: 'json',
-        async: true,
-        headers: {
-            "Authorization": "Basic " + auth
-        },
-        success: function(subjectList) {
-            allSubjects = allSubjects.concat(subjectList.ResultSet.Result);
-            callback(allSubjects);
-        },
-        error: function(xhr, status, error) {
-            var err = eval("(" + xhr.responseText + ")");
-            console.log(err.Message);
-        }
-    });
-}
-
 function listAllSubjects(baseUrl, auth, callback) {
     $.ajax({
         crossDomain: true,
@@ -45,8 +23,8 @@ function listAllSubjects(baseUrl, auth, callback) {
         type: "GET",
         dataType: 'json',
         async: true,
-        headers: {
-            "Authorization": "Basic " + auth
+        xhrFields: {
+               withCredentials: true
         },
         success: function(subjectList) {
             callback(subjectList.ResultSet.Result);
@@ -65,8 +43,8 @@ function listExperimentsForSubject(baseUrl, auth, projectLabel, subjectLabel, ca
         type: "GET",
         dataType: 'json',
         async: false,
-        headers: {
-            "Authorization": "Basic " + auth
+        xhrFields: {
+               withCredentials: true
         },
         success: function(experimentList) {
             experimentList.ResultSet.Result.forEach(function(experiment) {
@@ -91,8 +69,8 @@ function getScansForThisSubject(baseUrl, auth, subject) {
         type: "GET",
         dataType: 'json',
         async: true,
-        headers: {
-            "Authorization": "Basic " + auth
+        xhrFields: {
+               withCredentials: true
         },
         success: function(scanList) {
             scanList.ResultSet.Result.forEach(function(scan) {
@@ -113,12 +91,12 @@ function getScansForThisExperiment(baseUrl, auth, experiment) {
     var scans = [];
     $.ajax({
         crossDomain: true,
-         url: baseUrl + "REST/projects/" + experiment.project + "/subjects/" + experiment.xnatSubjectLabel + "/experiments/" + experiment.label + "/scans?format=json",
+        url: baseUrl + "REST/projects/" + experiment.project + "/subjects/" + experiment.xnatSubjectLabel + "/experiments/" + experiment.label + "/scans?format=json",
         type: "GET",
         dataType: 'json',
         async: false,
-        headers: {
-            "Authorization": "Basic " + auth
+        xhrFields: {
+               withCredentials: true
         },
         success: function(scanList) {
             scanList.ResultSet.Result.forEach(function(scan) {
@@ -141,12 +119,13 @@ function listResources(baseUrl, auth, scanList, callback) {
     scanList.forEach(function(r) { console.log("Scans: " + r.label); });
     scanList.forEach(function(scan) {
         $.ajax({
+            crossDomain: true,
             url: baseUrl + "REST/projects/" + scan.xnatProjectLabel + "/subjects/" + scan.xnatSubjectLabel + "/experiments/" + scan.xnatExperimentLabel + "/scans/" + scan.ID + "/resources?format=json",
             type: "GET",
             dataType: 'json',
             async: false,
-            headers: {
-                "Authorization": "Basic " + auth
+            xhrFields: {
+                   withCredentials: true
             },
             success: function(resourceList) {
                 resourceList.ResultSet.Result.forEach(function(resource) {
@@ -170,12 +149,13 @@ function listResources(baseUrl, auth, scanList, callback) {
 function listFiles(baseUrl, auth, resource) {
     files = [];
     $.ajax({
+        crossDomain: true,
         url: baseUrl + "data/archive/projects/" + resource.xnatProjectLabel + "/subjects/" + resource.xnatSubjectLabel + "/experiments/" + resource.xnatExperimentLabel + "/scans/" + resource.xnatScanLabel + "/resources/" + resource.xnatResourceLabel + "/files?format=json",
         type: "GET",
         dataType: 'json',
         async: false,
-        headers: {
-            "Authorization": "Basic " + auth
+        xhrFields: {
+               withCredentials: true
         },
         success: function(fileList) {
             files = fileList.ResultSet.Result;
