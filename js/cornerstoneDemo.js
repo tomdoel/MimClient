@@ -11,7 +11,7 @@ loadTemplate("templates/studyViewer.html", function(element) {
 });
 
 // Get study list from JSON manifest
-loadXnatPatientList(function(data) {
+loadXnatPatientList(xnatUrl, function(data) {
   data.subjectList.forEach(function(subject) {
 
     // Create one table row for each study in the manifest
@@ -53,7 +53,7 @@ loadXnatPatientList(function(data) {
       });
 
       // Now load the subject data
-      loadSubject(studyViewerCopy, viewportTemplate, subject);
+      loadSubject(xnatUrl, studyViewerCopy, viewportTemplate, subject);
     });
   });
 });

@@ -1,17 +1,8 @@
-var testingParameters = {xnatServer: "xxxx"};
-
-function loadXnatPatientList(callback) {
-    var baseUrl = testingParameters.xnatServer;
+function loadXnatPatientList(baseUrl, callback) {
     var callback_stored = callback;
     listAllSubjects(baseUrl, function(subjectList) {
         assemblePatientListFromXnatSubjects(subjectList, callback_stored);
     });
-}
-
-function getStudyInfo(study, callback) {
-
-    // Get study info from XNAT server
-    getStudyInfoXnat(study, callback);
 }
 
 function listAllSubjects(baseUrl, callback) {
@@ -182,8 +173,8 @@ function assemblePatientListFromXnatSubjects(xnatSubjectList, callback) {
     callback(outputData);
 }
 
-function getSubjectInfoXnat(subject, callback) {
-    makeSeriesListForSubject(subject, function(seriesList) {
+function getSubjectInfoXnat(baseUrl, subject, callback) {
+    makeSeriesListForSubject(baseUrl, subject, function(seriesList) {
         output = [];
         output.patientName = subject.subjectName;
         output.xnatProject = subject.xnatProject;
@@ -198,22 +189,7 @@ function getSubjectInfoXnat(subject, callback) {
     });
 }
 
-function getStudyInfoXnat(study, callback) {
-    output = [];
-    output.patientName = study.patientName;
-    output.patientId = study.patientId;
-    output.studyDate = study.studyDate;
-    output.modality = study.modality;
-    output.studyDescription = study.studyDescription;
-    output.numImages = study.numImages;
-    output.studyId = study.studyId;
-    output.seriesList = makeSeriesList(study);
-    callback(output);
-}
-
-function makeSeriesListForSubject(subject, callback) {
-    var baseUrl = testingParameters.xnatServer;
-    
+function makeSeriesListForSubject(baseUrl, subject, callback) {
     listExperimentsForSubject(baseUrl, subject.xnatProject, subject.subjectXnatID, function(experimentList) {
         listScansForExperimentList(baseUrl, experimentList, function(scans) {
             seriesList = [];
@@ -239,27 +215,6 @@ function listScansForExperimentList(baseUrl, experimentList, callback) {
         allScans = allScans.concat(getScansForThisExperiment(baseUrl, experiment));
     });
     callback(allScans);
-}
-
-function makeSeriesList(study) {
-    var baseUrl = testingParameters.xnatServer;
-    experiment = [];
-    experiment.project = study.xnatProjectLabel;
-    experiment.xnatSubjectLabel = study.xnatSubjectLabel;
-    experiment.label = study.xnatExperimentLabel;
-    scans = getScansForThisExperiment(baseUrl, experiment);
-    
-    seriesList = [];
-    scanNumber = 1;
-    scans.forEach(function(scan) {
-        nextSeries = [];
-        nextSeries.seriesDescription = scan.series_description;
-        nextSeries.seriesNumber = scanNumber;
-        nextSeries.instanceList = makeInstanceList(baseUrl, scan); 
-        scanNumber++;
-        seriesList.push(nextSeries);
-    });
-    return seriesList;
 }
 
 function makeInstanceList(baseUrl, scan) {

@@ -1,9 +1,9 @@
 
 // Load JSON study information for each study
-function loadSubject(studyViewer, viewportModel, subject) {
+function loadSubject(baseUrl, studyViewer, viewportModel, subject) {
 
     // Get the JSON data for the selected studyId
-    getSubjectInfoXnat(subject, function(data) {
+    getSubjectInfoXnat(baseUrl, subject, function(data) {
 
         var imageViewer = new ImageViewer(studyViewer, viewportModel);
         imageViewer.setLayout('1x1'); // default layout
