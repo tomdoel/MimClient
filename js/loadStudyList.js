@@ -1,12 +1,10 @@
-var testingParameters = {xnatServer: "xxxx", username: "xxxx", password: "xxxx", project: "xxxx"};
+var testingParameters = {xnatServer: "xxxx"};
 
 function loadXnatPatientList(callback) {
-    var auth = btoa(testingParameters.username + ":" + testingParameters.password);
     var baseUrl = testingParameters.xnatServer;
     var callback_stored = callback;
-    project = testingParameters.project;
-    listAllSubjects(baseUrl, auth, function(subjectList) {
-        assemblePatientListFromXnatSubjects(baseUrl, auth, subjectList, callback_stored);
+    listAllSubjects(baseUrl, function(subjectList) {
+        assemblePatientListFromXnatSubjects(subjectList, callback_stored);
     });
 }
 
@@ -16,7 +14,7 @@ function getStudyInfo(study, callback) {
     getStudyInfoXnat(study, callback);
 }
 
-function listAllSubjects(baseUrl, auth, callback) {
+function listAllSubjects(baseUrl, callback) {
     $.ajax({
         crossDomain: true,
         url: baseUrl + "REST/subjects?format=json&columns=DEFAULT",
@@ -36,7 +34,7 @@ function listAllSubjects(baseUrl, auth, callback) {
     });
 }
 
-function listExperimentsForSubject(baseUrl, auth, projectLabel, subjectLabel, callback) {
+function listExperimentsForSubject(baseUrl, projectLabel, subjectLabel, callback) {
     $.ajax({
         crossDomain: true,
         url: baseUrl + "REST/projects/" + projectLabel + "/subjects/" + subjectLabel + "/experiments?format=json",
@@ -87,7 +85,7 @@ function getScansForThisSubject(baseUrl, auth, subject) {
     });
 }
 
-function getScansForThisExperiment(baseUrl, auth, experiment) {
+function getScansForThisExperiment(baseUrl, experiment) {
     var scans = [];
     $.ajax({
         crossDomain: true,
@@ -114,7 +112,7 @@ function getScansForThisExperiment(baseUrl, auth, experiment) {
     return scans;
 }
 
-function listResources(baseUrl, auth, scanList, callback) {
+function listResources(baseUrl, scanList, callback) {
     var allResources = [];
     scanList.forEach(function(r) { console.log("Scans: " + r.label); });
     scanList.forEach(function(scan) {
@@ -146,7 +144,7 @@ function listResources(baseUrl, auth, scanList, callback) {
     callback(allResources);
 }
 
-function listFiles(baseUrl, auth, resource) {
+function listFiles(baseUrl, resource) {
     files = [];
     $.ajax({
         crossDomain: true,
@@ -169,7 +167,7 @@ function listFiles(baseUrl, auth, resource) {
 }
 
 
-function assemblePatientListFromXnatSubjects(baseUrl, auth, xnatSubjectList, callback) {
+function assemblePatientListFromXnatSubjects(xnatSubjectList, callback) {
     outputData = [];
     outputData.subjectList = [];
     xnatSubjectList.forEach(function(subject) {
@@ -214,18 +212,17 @@ function getStudyInfoXnat(study, callback) {
 }
 
 function makeSeriesListForSubject(subject, callback) {
-    var auth = btoa(testingParameters.username + ":" + testingParameters.password);
     var baseUrl = testingParameters.xnatServer;
     
-    listExperimentsForSubject(baseUrl, auth, subject.xnatProject, subject.subjectXnatID, function(experimentList) {
-        listScansForExperimentList(baseUrl, auth, subject, experimentList, function(scans) {
+    listExperimentsForSubject(baseUrl, subject.xnatProject, subject.subjectXnatID, function(experimentList) {
+        listScansForExperimentList(baseUrl, experimentList, function(scans) {
             seriesList = [];
             scanNumber = 1;
             scans.forEach(function(scan) {
                 nextSeries = [];
                 nextSeries.seriesDescription = scan.series_description;
                 nextSeries.seriesNumber = scanNumber;
-                nextSeries.instanceList = makeInstanceList(baseUrl, auth, scan); 
+                nextSeries.instanceList = makeInstanceList(baseUrl, scan); 
                 scanNumber++;
                 seriesList.push(nextSeries);
             });
@@ -236,23 +233,21 @@ function makeSeriesListForSubject(subject, callback) {
 
  
 
-function listScansForExperimentList(baseUrl, auth, subject, experimentList, callback) {
+function listScansForExperimentList(baseUrl, experimentList, callback) {
     allScans = [];
     experimentList.forEach(function(experiment) {
-        allScans = allScans.concat(getScansForThisExperiment(baseUrl, auth, experiment));
+        allScans = allScans.concat(getScansForThisExperiment(baseUrl, experiment));
     });
     callback(allScans);
 }
 
 function makeSeriesList(study) {
-    var auth = btoa(testingParameters.username + ":" + testingParameters.password);
-
     var baseUrl = testingParameters.xnatServer;
     experiment = [];
     experiment.project = study.xnatProjectLabel;
     experiment.xnatSubjectLabel = study.xnatSubjectLabel;
     experiment.label = study.xnatExperimentLabel;
-    scans = getScansForThisExperiment(baseUrl, auth, experiment);
+    scans = getScansForThisExperiment(baseUrl, experiment);
     
     seriesList = [];
     scanNumber = 1;
@@ -260,18 +255,18 @@ function makeSeriesList(study) {
         nextSeries = [];
         nextSeries.seriesDescription = scan.series_description;
         nextSeries.seriesNumber = scanNumber;
-        nextSeries.instanceList = makeInstanceList(baseUrl, auth, scan); 
+        nextSeries.instanceList = makeInstanceList(baseUrl, scan); 
         scanNumber++;
         seriesList.push(nextSeries);
     });
     return seriesList;
 }
 
-function makeInstanceList(baseUrl, auth, scan) {
+function makeInstanceList(baseUrl, scan) {
     instanceList = [];
-    listResources(baseUrl, auth, [scan], function(resourceList) {
+    listResources(baseUrl, [scan], function(resourceList) {
         resourceList.forEach(function(resource) {
-            files = listFiles(baseUrl, auth, resource);
+            files = listFiles(baseUrl, resource);
             files.forEach(function(file) {
                 instanceEntry = [];
                 instanceEntry.imageId = "dicomweb:" + stripTrailingSlash(baseUrl) + file.URI;            
