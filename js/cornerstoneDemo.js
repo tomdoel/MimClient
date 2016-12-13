@@ -10,54 +10,10 @@ loadTemplate("templates/studyViewer.html", function(element) {
     studyViewerTemplate = element;
 });
 
-// Get study list from JSON manifest
-loadXnatPatientList(xnatUrl, function(data) {
-  data.subjectList.forEach(function(subject) {
+var xnatUrl = [];
+    
 
-    // Create one table row for each study in the manifest
-    var studyRow = '<tr><td>' +
-    subject.xnatProject + '</td><td>' +
-    subject.subjectName + '</td><td>' +
-    subject.xnatInsertDate + '</td><td>' +
-    '</tr>';
-
-    // Append the row to the study list
-    var studyRowElement = $(studyRow).appendTo('#studyListData');
-
-    // On study list row click
-    $(studyRowElement).click(function() {
-
-      // Add new tab for this study and switch to it
-      var studyTab = '<li><a href="#x' + subject.subjectXnatID + '" data-toggle="tab">' + subject.subjectName + '</a></li>';
-      $('#tabs').append(studyTab);
-
-      // Add tab content by making a copy of the studyViewerTemplate element
-      var studyViewerCopy = studyViewerTemplate.clone();
-
-      /*var viewportCopy = viewportTemplate.clone();
-      studyViewerCopy.find('.imageViewer').append(viewportCopy);*/
-
-
-      studyViewerCopy.attr("id", 'x' + subject.subjectXnatID);
-      // Make the viewer visible
-      studyViewerCopy.removeClass('hidden');
-      // Add section to the tab content
-      studyViewerCopy.appendTo('#tabContent');
-
-      // Show the new tab (which will be the last one since it was just added
-      $('#tabs a:last').tab('show');
-
-      // Toggle window resize (?)
-      $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
-        $(window).trigger('resize');
-      });
-
-      // Now load the subject data
-      loadSubject(xnatUrl, studyViewerCopy, viewportTemplate, subject);
-    });
-  });
-});
-
+load();
 
 // Show tabs on click
 $('#tabs a').click (function(e) {
@@ -84,3 +40,105 @@ resizeMain();
 document.body.addEventListener('touchmove', function(e) {
   e.preventDefault();
 });
+
+$(document).ready(function(){
+
+    $("#inputUrl").val(getCookieParameter("xnatUrl"));
+
+    $("#go").click(function() {
+        var inputvalue = $("#inputUrl").val();
+        xnatUrl = inputvalue;
+        if (xnatUrl.substr(-1) !== '/') {
+            xnatUrl += '/';
+            $("#inputUrl").val(xnatUrl);
+        }
+        $("#studyListData").empty();
+        setCookieParameter("xnatUrl", xnatUrl);
+        load();
+    });
+
+    $("#login").click(function() {
+        var inputvalue = $("#inputUrl").val();
+        xnatUrl = inputvalue;
+        if (xnatUrl.substr(-1) !== '/') {
+            xnatUrl += '/';
+            $("#inputUrl").val(xnatUrl);
+        }
+        setCookieParameter("xnatUrl", xnatUrl);
+        window.open(xnatUrl, '_blank').focus();
+    });
+});
+
+function load() {
+    // Get study list from JSON manifest
+    loadXnatPatientList(xnatUrl, function(data) {
+      data.subjectList.forEach(function(subject) {
+
+        // Create one table row for each study in the manifest
+        var studyRow = '<tr><td>' +
+        subject.xnatProject + '</td><td>' +
+        subject.subjectName + '</td><td>' +
+        subject.xnatInsertDate + '</td><td>' +
+        '</tr>';
+
+        // Append the row to the study list
+        var studyRowElement = $(studyRow).appendTo('#studyListData');
+
+        // On study list row click
+        $(studyRowElement).click(function() {
+
+          // Add new tab for this study and switch to it
+          var studyTab = '<li><a href="#x' + subject.subjectXnatID + '" data-toggle="tab">' + subject.subjectName + '</a></li>';
+          $('#tabs').append(studyTab);
+
+          // Add tab content by making a copy of the studyViewerTemplate element
+          var studyViewerCopy = studyViewerTemplate.clone();
+
+          /*var viewportCopy = viewportTemplate.clone();
+          studyViewerCopy.find('.imageViewer').append(viewportCopy);*/
+
+
+          studyViewerCopy.attr("id", 'x' + subject.subjectXnatID);
+          // Make the viewer visible
+          studyViewerCopy.removeClass('hidden');
+          // Add section to the tab content
+          studyViewerCopy.appendTo('#tabContent');
+
+          // Show the new tab (which will be the last one since it was just added
+          $('#tabs a:last').tab('show');
+
+          // Toggle window resize (?)
+          $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+            $(window).trigger('resize');
+          });
+
+          // Now load the subject data
+          loadSubject(xnatUrl, studyViewerCopy, viewportTemplate, subject);
+        });
+      });
+    });
+
+}
+
+function setCookieParameter(name, value) {
+    var date = new Date();
+    var expireTime = 24*60*60*1000;
+    date.setTime(date.getTime() + expireTime);
+    var expires = "expires=" + date.toUTCString();
+    document.cookie = name + "=" + value + ";" + expires + ";path=/";
+}
+
+function getCookieParameter(name) {
+    var name = name + "=";
+    var splitCookies = document.cookie.split(';');
+    for (var i = 0; i < splitCookies.length; i++) {
+        var cookieValue = splitCookies[i];
+        while (cookieValue.charAt(0)==' ') {
+            cookieValue = cookieValue.substring(1);
+        }
+        if (cookieValue.indexOf(name) == 0) {
+            return cookieValue.substring(name.length, cookieValue.length);
+        }
+    }
+    return "";
+}

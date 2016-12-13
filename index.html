@@ -22,10 +22,6 @@
   <!-- Cornerstone Demo CSS -->
   <link href="css/cornerstoneDemo.css" rel="stylesheet">
   
-    <script>
-        var xnatUrl = "*** YOUR XNAT SERVER URL ***";
-    </script>  
-    
 </head>
 
 <body>
@@ -34,10 +30,11 @@
     <!-- Nav bar -->
     <nav class="myNav navbar navbar-default" role="navigation">
       <div class="container-fluid">
-        <div class="navbar-header">
-          <a class="navbar-brand" href="https://github.com/tomdoel/cornerstoneXnat">Cornerstone-Xnat</a>
-            <a class="navbar-brand" onclick="window.open(xnatUrl, '_blank').focus(); return false;">Login</a>
-        </div>
+        <ul class="nav navbar-nav navbar-left">
+          <li><input type="text" size="100" id="inputUrl" placeholder="Enter your XNAT server URL"></li>
+          <li><a id="go" href="#" class="button hidden-xs">Go</a></li>
+          <li><a id="login" href="#" class="button hidden-xs">Login</a></li>
+        </ul>
         <ul class="nav navbar-nav navbar-right">
           <li><a id="help" href="#" class="button hidden-xs">Help</a></li>
           <li><a id="about" href="#" class="button hidden-xs">About</a></li>
