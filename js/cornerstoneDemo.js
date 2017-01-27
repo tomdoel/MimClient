@@ -65,10 +65,11 @@ $(document).ready(function(){
     if (requestedUrl) {
         $("#inputUrl").val(requestedUrl);
         $("#inputUrl").prop('disabled', true);
+        $("#inputUrl").hide();
+        $("#go").hide();
         newUrl(requestedUrl);
     } else {
         $("#inputUrl").val(getCookieParameter("xnatUrl"));
-        $("#inputUrl").prop('disabled', false);
     }
 
     $("#go").click(function() {
