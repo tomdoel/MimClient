@@ -47,21 +47,33 @@ var getParameterFromUrl = function(parameterName) {
     return !paramVal ? '' : paramVal[1];
 }
 
+function newUrl(inputvalue) {
+    xnatUrl = inputvalue;
+    if (xnatUrl.substr(-1) !== '/') {
+        xnatUrl += '/';
+        $("#inputUrl").val(xnatUrl);
+    }
+    $("#studyListData").empty();
+    setCookieParameter("xnatUrl", xnatUrl);
+    load();
+}
+
 $(document).ready(function(){
 
-	var requestedUrl = getParameterFromUrl("url");
-    $("#inputUrl").val(requestedUrl ? requestedUrl : getCookieParameter("xnatUrl"));
+    // If URL input is specified as a parameter, it cannot be changed by the user
+    var requestedUrl = getParameterFromUrl("url");
+    if (requestedUrl) {
+        $("#inputUrl").val(requestedUrl);
+        $("#inputUrl").prop('disabled', true);
+        newUrl(requestedUrl);
+    } else {
+        $("#inputUrl").val(getCookieParameter("xnatUrl"));
+        $("#inputUrl").prop('disabled', false);
+    }
 
     $("#go").click(function() {
         var inputvalue = $("#inputUrl").val();
-        xnatUrl = inputvalue;
-        if (xnatUrl.substr(-1) !== '/') {
-            xnatUrl += '/';
-            $("#inputUrl").val(xnatUrl);
-        }
-        $("#studyListData").empty();
-        setCookieParameter("xnatUrl", xnatUrl);
-        load();
+        newUrl(inputvalue);
     });
 
     $("#login").click(function() {
