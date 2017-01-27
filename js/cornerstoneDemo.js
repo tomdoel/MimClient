@@ -41,9 +41,16 @@ document.body.addEventListener('touchmove', function(e) {
   e.preventDefault();
 });
 
+var getParameterFromUrl = function(parameterName) {
+    var rx = new RegExp('[\&|\?]' + parameterName + '=([^\&\#]+)'),
+        paramVal = window.location.search.match(rx);
+    return !paramVal ? '' : paramVal[1];
+}
+
 $(document).ready(function(){
 
-    $("#inputUrl").val(getCookieParameter("xnatUrl"));
+	var requestedUrl = getParameterFromUrl("url");
+    $("#inputUrl").val(requestedUrl ? requestedUrl : getCookieParameter("xnatUrl"));
 
     $("#go").click(function() {
         var inputvalue = $("#inputUrl").val();
