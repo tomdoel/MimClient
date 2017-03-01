@@ -50,7 +50,7 @@ function loadSubject(baseUrl, studyViewer, viewportModel, subject) {
         // Load the first series into the viewport (?)
         //var stacks = [];
         //var currentStackIndex = 0;
-        var seriesIndex = 0;
+        var nextSeriesIndex = 0;
 
 
 
@@ -90,17 +90,22 @@ function loadSubject(baseUrl, studyViewer, viewportModel, subject) {
         
         // Create a stack object for each series
         data.seriesList.forEach(function(series) {
+            var stackIndex = nextSeriesIndex;
+            nextSeriesIndex++;
+            var stack = {
+                seriesDescription: series.seriesDescription,
+                stackId: series.seriesNumber,
+                imageIds: [],
+                overlayImageIds: [],
+                seriesIndex: stackIndex,
+                currentImageIdIndex: 0,
+                frameRate: series.frameRate
+            };
+            // Add the series stack to the stacks array
+            imageViewer.stacks.push(stack);
+                
             getMimBackgroundImage(series, function(backgroundStack) {
-                var stackIndex = seriesIndex;
-                var stack = {
-                    seriesDescription: series.seriesDescription,
-                    stackId: series.seriesNumber,
-                    imageIds: [],
-                    seriesIndex: seriesIndex,
-                    currentImageIdIndex: 0,
-                    frameRate: series.frameRate
-                };
-
+                var stack = imageViewer.stacks[stackIndex];
 
                 // Populate imageIds array with the imageIds from each series
                 // For series with frame information, get the image url's by requesting each frame
@@ -108,14 +113,6 @@ function loadSubject(baseUrl, studyViewer, viewportModel, subject) {
                     var imageId = image.imageId;
                     stack.imageIds.push(imageId);
                 });
-
-                // Move to next series
-                seriesIndex++;
-
-                // Add the series stack to the stacks array
-                imageViewer.stacks.push(stack);
-                
-                
                 
                 // Code integrated from below
                 var seriesEntry = '<a class="list-group-item" + ' +
@@ -156,11 +153,22 @@ function loadSubject(baseUrl, studyViewer, viewportModel, subject) {
                 }).data('stack', stackIndex);
                 
   
+            }, function(overlayStack) {
+                stack = imageViewer.stacks[stackIndex];
+
+                // Populate imageIds array with the imageIds from each series
+                // For series with frame information, get the image url's by requesting each frame
+                overlayStack.instanceList.forEach(function(image) {
+                    var imageId = image.imageId;
+                    stack.overlayImageIds.push(imageId);
+                });
             });
         });
 
         function useItemStack(item, stack) {
-            var imageId = imageViewer.stacks[stack].imageIds[0], element = imageViewer.getElement(item);
+            var imageId = imageViewer.stacks[stack].imageIds[0];
+            var element = imageViewer.getElement(item);
+            var overlayImageId = imageViewer.stacks[stack].overlayImageIds[0];
             if ($(element).data('waiting')) {
                 imageViewer.viewports[item].find('.overlay-text').remove();
                 $(element).data('waiting', false);

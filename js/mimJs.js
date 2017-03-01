@@ -56,7 +56,7 @@ function MimWebSocket(url)
         //Update the remote model cache
         remoteModelCache.updateHashes(parsedMessage.localHash, parsedMessage.lastRemoteHash);
         
-        updateModel(localModelCache, new MimRemoteModelProxy(this, parsedMessage.modelName, parsedMessage.value, parsedMessage.metaData, parsedMessage.payloadType, remoteModelCache));
+        updateModel(localModelCache, new MimRemoteModelProxy(self, parsedMessage.modelName, parsedMessage.value, parsedMessage.metaData, parsedMessage.payloadType, remoteModelCache));
     };
     
     this.addListener = function(modelName, listener) {
@@ -459,41 +459,50 @@ function ParseArrayBuffer(data, callback) {
     var dataBytes = bytes.buffer.slice(9 + headerLength, 9 + headerLength + dataLength);
     var dataType = header.dataType;
     var dataDims = header.dataDims;
+    var imageType;
     var dataArray;
     
     switch(dataType) {
         case 'uint8':
             dataArray = new Uint8Array(dataBytes);
+            imageType = 2;
             break;
         case 'uint16':
             dataArray = new Uint16Array(dataBytes);
+            imageType = 1;
             break;
         case 'uint32':
             dataArray = new Uint32Array(dataBytes);
+            imageType = 1;
             break;
         case 'int8':
             dataArray = new Int8Array(dataBytes);
+            imageType = 2;
             break;
         case 'int16':
             dataArray = new Int16Array(dataBytes);
+            imageType = 1;
             break;
         case 'int32':
             dataArray = new Int32Array(dataBytes);
+            imageType = 1;
             break;
         default:
             console.log("Unknown data format: " + dataType);
             
     }
     
-    var image = new MimImage(dataArray, dataDims);
+    var image = new MimImage(dataArray, dataDims, dataType, imageType);
     var parsedMessage = new ParsedMessage(version, header.softwareVersion, header.modelName, header.localHash, header.lastRemoteHash, metaData, header.payloadType, image);
 
     callback(parsedMessage);
 }
 
-function MimImage(data, dimensions) {
+function MimImage(data, dimensions, dataType, imageType) {
     this.data = data;
     this.dimensions = dimensions;
+    this.dataType = dataType;
+    this.imageType = imageType;
     
 }
 

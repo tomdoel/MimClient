@@ -33,17 +33,15 @@ function getMimBackgroundImage(seriesListEntry, dataCallback, segmentationCallba
             dv.instanceList = backgroundDataView.instanceList;
             dataCallback(dv);
         });
-        Mim.getSingleton().addListener(series.backgroundViewModelUid, function(segmentationDataView) {
+        Mim.getSingleton().addListener(series.segmentationViewModelUid, function(segmentationDataView) {
             dv = [];
             dv.instanceList = segmentationDataView.instanceList;
             segmentationCallback(dv);
         });
     });
 };
-     
 
 function getMimSubjectInfo(baseUrl, subject, callback) {
-//    var callback_stored = callback;
     Mim.getSingleton().addListener(subject.modelUid, function(subjectInfo) {
         output = [];
         output.patientName = subjectInfo.subjectName;
