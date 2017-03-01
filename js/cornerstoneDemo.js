@@ -98,7 +98,7 @@ function load() {
         var studyRow = '<tr><td>' +
         subject.xnatProject + '</td><td>' +
         subject.subjectName + '</td><td>' +
-        subject.xnatInsertDate + '</td><td>' +
+        subject.label + '</td><td>' +
         '</tr>';
 
         // Append the row to the study list
@@ -108,7 +108,7 @@ function load() {
         $(studyRowElement).click(function() {
 
           // Add new tab for this study and switch to it
-          var studyTab = '<li><a href="#x' + subject.subjectXnatID + '" data-toggle="tab">' + subject.subjectName + '</a></li>';
+          var studyTab = '<li><a href="#x' + subject.modelUid + '" data-toggle="tab">' + subject.subjectName + '</a></li>';
           $('#tabs').append(studyTab);
 
           // Add tab content by making a copy of the studyViewerTemplate element
@@ -118,7 +118,7 @@ function load() {
           studyViewerCopy.find('.imageViewer').append(viewportCopy);*/
 
 
-          studyViewerCopy.attr("id", 'x' + subject.subjectXnatID);
+          studyViewerCopy.attr("id", 'x' + subject.modelUid);
           // Make the viewer visible
           studyViewerCopy.removeClass('hidden');
           // Add section to the tab content

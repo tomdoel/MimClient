@@ -3,7 +3,7 @@
 function loadSubject(baseUrl, studyViewer, viewportModel, subject) {
 
     // Get the JSON data for the selected studyId
-    getSubjectInfoXnat(baseUrl, subject, function(data) {
+    getMimSubjectInfo(baseUrl, subject, function(data) {
 
         var imageViewer = new ImageViewer(studyViewer, viewportModel);
         imageViewer.setLayout('1x1'); // default layout
@@ -52,39 +52,11 @@ function loadSubject(baseUrl, studyViewer, viewportModel, subject) {
         //var currentStackIndex = 0;
         var seriesIndex = 0;
 
-        // Create a stack object for each series
-        data.seriesList.forEach(function(series) {
-            var stack = {
-                seriesDescription: series.seriesDescription,
-                stackId: series.seriesNumber,
-                imageIds: [],
-                seriesIndex: seriesIndex,
-                currentImageIdIndex: 0,
-                frameRate: series.frameRate
-            };
 
 
-            // Populate imageIds array with the imageIds from each series
-            // For series with frame information, get the image url's by requesting each frame
-            if (series.numberOfFrames !== undefined) {
-                var numberOfFrames = series.numberOfFrames;
-                for (var i = 0; i < numberOfFrames; i++) {
-                    var imageId = series.instanceList[0].imageId + "?frame=" + i;
-                    stack.imageIds.push(imageId);
-                }
-                // Otherwise, get each instance url
-            } else {
-                series.instanceList.forEach(function(image) {
-                    var imageId = image.imageId;
-                    stack.imageIds.push(imageId);
-                });
-            }
-            // Move to next series
-            seriesIndex++;
 
-            // Add the series stack to the stacks array
-            imageViewer.stacks.push(stack);
-        });
+
+        // START OF CODE MOVED UP
 
         // Resize the parent div of the viewport to fit the screen
         var imageViewerElement = $(studyViewer).find('.imageViewer')[0];
@@ -110,45 +82,81 @@ function loadSubject(baseUrl, studyViewer, viewportModel, subject) {
 
         // Get series list from the series thumbnails (?)
         var seriesList = $(studyViewer).find('.thumbnails')[0];
-        imageViewer.stacks.forEach(function(stack, stackIndex) {
+        
+        
+        
+        // END OF CODE MOVED UP
+        
+        
+        // Create a stack object for each series
+        data.seriesList.forEach(function(series) {
+            getMimBackgroundImage(series, function(backgroundStack) {
+                var stackIndex = seriesIndex;
+                var stack = {
+                    seriesDescription: series.seriesDescription,
+                    stackId: series.seriesNumber,
+                    imageIds: [],
+                    seriesIndex: seriesIndex,
+                    currentImageIdIndex: 0,
+                    frameRate: series.frameRate
+                };
 
-            // Create series thumbnail item
-            var seriesEntry = '<a class="list-group-item" + ' +
-                'oncontextmenu="return false"' +
-                'unselectable="on"' +
-                'onselectstart="return false;"' +
-                'onmousedown="return false;">' +
-                '<div class="csthumbnail"' +
-                'oncontextmenu="return false"' +
-                'unselectable="on"' +
-                'onselectstart="return false;"' +
-                'onmousedown="return false;"></div>' +
-                "<div class='text-center small'>" + stack.seriesDescription + '</div></a>';
 
-            // Add to series list
-            var seriesElement = $(seriesEntry).appendTo(seriesList);
+                // Populate imageIds array with the imageIds from each series
+                // For series with frame information, get the image url's by requesting each frame
+                backgroundStack.instanceList.forEach(function(image) {
+                    var imageId = image.imageId;
+                    stack.imageIds.push(imageId);
+                });
 
-            // Find thumbnail
-            var thumbnail = $(seriesElement).find('div')[0];
+                // Move to next series
+                seriesIndex++;
 
-            // Enable cornerstone on the thumbnail
-            cornerstone.enable(thumbnail);
+                // Add the series stack to the stacks array
+                imageViewer.stacks.push(stack);
+                
+                
+                
+                // Code integrated from below
+                var seriesEntry = '<a class="list-group-item" + ' +
+                    'oncontextmenu="return false"' +
+                    'unselectable="on"' +
+                    'onselectstart="return false;"' +
+                    'onmousedown="return false;">' +
+                    '<div class="csthumbnail"' +
+                    'oncontextmenu="return false"' +
+                    'unselectable="on"' +
+                    'onselectstart="return false;"' +
+                    'onmousedown="return false;"></div>' +
+                    "<div class='text-center small'>" + stack.seriesDescription + '</div></a>';
 
-            // Have cornerstone load the thumbnail image
-            cornerstone.loadAndCacheImage(imageViewer.stacks[stack.seriesIndex].imageIds[0]).then(function(image) {
-                // Make the first thumbnail active
-                if (stack.seriesIndex === 0) {
-                    $(seriesElement).addClass('active');
-                }
-                // Display the image
-                cornerstone.displayImage(thumbnail, image);
-                $(seriesElement).draggable({helper: "clone"});
+                // Add to series list
+                var seriesElement = $(seriesEntry).appendTo(seriesList);
+
+                // Find thumbnail
+                var thumbnail = $(seriesElement).find('div')[0];
+
+                // Enable cornerstone on the thumbnail
+                cornerstone.enable(thumbnail);
+
+                // Have cornerstone load the thumbnail image
+                cornerstone.loadAndCacheImage(imageViewer.stacks[stack.seriesIndex].imageIds[0]).then(function(image) {
+                    // Make the first thumbnail active
+                    if (stack.seriesIndex === 0) {
+                        $(seriesElement).addClass('active');
+                    }
+                    // Display the image
+                    cornerstone.displayImage(thumbnail, image);
+                    $(seriesElement).draggable({helper: "clone"});
+                });
+
+                // Handle thumbnail click
+                $(seriesElement).on('click touchstart', function() {
+                  useItemStack(0, stackIndex);
+                }).data('stack', stackIndex);
+                
+  
             });
-
-            // Handle thumbnail click
-            $(seriesElement).on('click touchstart', function() {
-              useItemStack(0, stackIndex);
-            }).data('stack', stackIndex);
         });
 
         function useItemStack(item, stack) {
@@ -166,10 +174,7 @@ function loadSubject(baseUrl, studyViewer, viewportModel, subject) {
                     $(el).data('setup', true);
                 }
             });
-            /*cornerstone.loadAndCacheImage(imageId).then(function(image){
-                setupViewport(element, imageViewer.stacks[stack], image);
-                setupViewportOverlays(element, data);
-            });*/
+
         }
         // Resize study viewer
         function resizeStudyViewer() {
