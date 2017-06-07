@@ -459,43 +459,53 @@ function ParseArrayBuffer(data, callback) {
     var dataBytes = bytes.buffer.slice(9 + headerLength, 9 + headerLength + dataLength);
     var dataType = header.dataType;
     var dataDims = header.dataDims;
-    var imageType;
+    var imageType = header.imageType;
     var dataArray;
     
     switch(dataType) {
+        case 'MimImageStorage':
+            parsedData = decodeMimImageStorage(metaData, dataBytes);
+        break;
+        default:
+            console.log("Unknown data format: " + dataType);            
+            throw("Unknown data format: " + dataType);
+    }
+    
+    var parsedMessage = new ParsedMessage(version, header.softwareVersion, header.modelName, header.localHash, header.lastRemoteHash, metaData, header.payloadType, parsedData);
+
+    callback(parsedMessage);
+}
+
+function decodeMimImageStorage(metaData, dataBytes) {
+    var dataArray;
+    switch(metaData.dataType) {
         case 'uint8':
             dataArray = new Uint8Array(dataBytes);
-            imageType = 2;
             break;
         case 'uint16':
             dataArray = new Uint16Array(dataBytes);
-            imageType = 1;
             break;
         case 'uint32':
             dataArray = new Uint32Array(dataBytes);
-            imageType = 1;
             break;
         case 'int8':
             dataArray = new Int8Array(dataBytes);
-            imageType = 2;
             break;
         case 'int16':
             dataArray = new Int16Array(dataBytes);
-            imageType = 1;
             break;
         case 'int32':
             dataArray = new Int32Array(dataBytes);
-            imageType = 1;
+            break;
+        case 'float':
+            dataArray = new Int32Array(dataBytes);
             break;
         default:
             console.log("Unknown data format: " + dataType);
-            
+            dataArray = dataBytes;
     }
     
-    var image = new MimImage(dataArray, dataDims, dataType, imageType);
-    var parsedMessage = new ParsedMessage(version, header.softwareVersion, header.modelName, header.localHash, header.lastRemoteHash, metaData, header.payloadType, image);
-
-    callback(parsedMessage);
+    return new MimImage(dataArray, metaData.dataDims, metaData.dataType, metaData.imageType);
 }
 
 function MimImage(data, dimensions, dataType, imageType) {
