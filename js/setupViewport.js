@@ -1,5 +1,5 @@
-function setupViewport(element, stack, image) {
-    // Display the image on the viewer element
+function setupViewport(element, stack, image, overlayImage) {
+
     cornerstone.displayImage(element, image);
 
     // If it's a movie (has frames), then play the clip

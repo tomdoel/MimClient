@@ -23,7 +23,7 @@ function displayThumbnail(seriesList, seriesElement, element, stack, loaded) {
     cornerstone.loadAndCacheImage(stack.imageIds[0]).then(function(image) {
         cornerstone.loadAndCacheImage(stack.overlayImageIds[0]).then(function(overlayImage) {
             if (loaded) {
-                loaded.call(image, image, element, stack);
+                loaded.call(image, image, overlayImage, element, stack);
             }
 
             // Get the state of the stack tool

@@ -175,9 +175,9 @@ function loadSubject(baseUrl, studyViewer, viewportModel, subject) {
             }
             $(element).data('useStack', stack);
 
-            displayThumbnail(seriesList, $(seriesList).find('.list-group-item')[stack], element, imageViewer.stacks[stack], function(image, el, stack){
+            displayThumbnail(seriesList, $(seriesList).find('.list-group-item')[stack], element, imageViewer.stacks[stack], function(image, overlayImage, el, stack){
                 if (!$(el).data('setup')) {
-                    setupViewport(el, stack, image);
+                    setupViewport(el, stack, image, overlayImage);
                     setupViewportOverlays(el, data);
                     $(el).data('setup', true);
                 }
