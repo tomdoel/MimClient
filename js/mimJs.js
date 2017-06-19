@@ -21,10 +21,10 @@ function MimWebSocket(url)
         
         mimSocket.onmessage = function(event) {
             if (event.data instanceof Blob) {
-                console.log("About to parse blob");
+//                console.log("About to parse blob");
                 parseBlob(event.data, self.parseMessage);
             } else if (typeof event.data === "string") {
-                console.log("About to parse JSON");
+//                console.log("About to parse JSON");
                 parseJson(event.data, self.parseMessage);
             }
         };
@@ -45,7 +45,7 @@ function MimWebSocket(url)
     };
     
     this.parseMessage = function(parsedMessage) {
-        console.log("Blob message received: version:" + parsedMessage.version + " software version:" + parsedMessage.softwareversion + " model:" + parsedMessage.modelName + " hash server:" + parsedMessage.localHash + " hash last client:" + parsedMessage.lastRemoteHash + " value:" + parsedMessage.value);
+//        console.log("Blob message received: version:" + parsedMessage.version + " software version:" + parsedMessage.softwareversion + " model:" + parsedMessage.modelName + " hash server:" + parsedMessage.localHash + " hash last client:" + parsedMessage.lastRemoteHash + " value:" + parsedMessage.value);
         
         // Get the remote model cache
         var remoteModelCache = remoteCache.getModelCacheEntry(parsedMessage.modelName);
@@ -410,7 +410,7 @@ function parseBlob(blob, callback) {
 }
 
 function parseJson(jsonMessage, callback) {
-    console.log("String message received:" + jsonMessage);
+//    console.log("String message received:" + jsonMessage);
     var parsed = JSON.parse(jsonMessage);
     var parsedMessage = new ParsedMessage(parsed.version, parsed.softwareVersion, parsed.modelName, parsed.localHash, parsed.lastRemoteHash, parsed.metaData, parsed.payloadType, parsed.value);
     callback(parsedMessage);
