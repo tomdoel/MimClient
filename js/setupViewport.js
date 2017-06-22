@@ -1,7 +1,7 @@
 function setupViewport(element, stack, image, overlayImage) {
 
-    cornerstone.displayImage(element, image);
-
+    cornerstone.displayImageAndOverlay(element, image, overlayImage);
+    
     // If it's a movie (has frames), then play the clip
     if (stack.frameRate !== undefined) {
         cornerstone.playClip(element, stack.frameRate);
