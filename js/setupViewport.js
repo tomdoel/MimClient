@@ -15,13 +15,16 @@ function setupViewport(element, stack, image, overlayImage) {
     // Enable all tools we want to use with this element
     cornerstoneTools.wwwc.activate(element, 1); // ww/wc is the default tool for left mouse button
     cornerstoneTools.pan.activate(element, 2); // pan is the default tool for middle mouse button
-    cornerstoneTools.zoom.activate(element, 4); // zoom is the default tool for right mouse button
+    cornerstoneTools.zoom.activate(element); // 
     cornerstoneTools.probe.enable(element);
     cornerstoneTools.length.enable(element);
     cornerstoneTools.ellipticalRoi.enable(element);
     cornerstoneTools.rectangleRoi.enable(element);
     cornerstoneTools.wwwcTouchDrag.activate(element);
     cornerstoneTools.zoomTouchPinch.activate(element);
+    
+    cornerstoneTools.freehand.activate(element);
+    cornerstoneTools.interactiveedit.enable(element, 4);
 
     // Stack tools
     cornerstoneTools.addStackStateManager(element, ['playClip']);

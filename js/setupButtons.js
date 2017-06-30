@@ -116,6 +116,22 @@ function setupButtons(studyViewer) {
         });
     });
 
+    // Freehand
+    $(buttons[12]).on('click touchstart', function() {
+        disableAllTools();
+        forEachViewport(function(element) {
+            cornerstoneTools.freehand.activate(element, 1);
+        });
+    });
+
+    // Interactive edit
+    $(buttons[13]).on('click touchstart', function() {
+        disableAllTools();
+        forEachViewport(function(element) {
+            cornerstoneTools.interactiveedit.activate(element, 5);
+        });
+    });
+
     // Tooltips
     $(buttons[0]).tooltip();
     $(buttons[1]).tooltip();
@@ -130,5 +146,6 @@ function setupButtons(studyViewer) {
     $(buttons[10]).tooltip();
     $(buttons[11]).tooltip();
     $(buttons[12]).tooltip();
+    $(buttons[13]).tooltip();
 
 };
